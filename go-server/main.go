@@ -20,7 +20,6 @@ import (
 	//    sw "github.com/myname/myrepo/go"
 	//
 	sw "github.com/moznobkin/productoffering-composite/go"
-	client "github.com/moznobkin/productoffering-composite/life-client"
 )
 
 func main() {

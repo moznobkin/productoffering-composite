@@ -24,5 +24,5 @@ type SpecRelationship struct {
 	// The association role for this service specification
 	Role string `json:"role,omitempty"`
 	// The period for which the ser
-	ValidFor *Object `json:"validFor,omitempty"`
+	ValidFor string `json:"validFor,omitempty"`
 }

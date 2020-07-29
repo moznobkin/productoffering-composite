@@ -9,7 +9,11 @@
 package swagger
 
 import (
+	"encoding/json"
 	"net/http"
+	"os"
+	"strconv"
+
 	client "github.com/moznobkin/productoffering-composite/life-client"
 )
 
@@ -25,32 +29,149 @@ func GetQualifiedCategories(w http.ResponseWriter, r *http.Request) {
 
 func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-
-
+	cats, err := getCategories()
+	if err != nil {
+		panic(err)
+	}
+	result, err := mapCategories2Qualification(cats)
+	if err != nil {
+		panic(err)
+	}
+	json.NewEncoder(w).Encode(result)
 	w.WriteHeader(http.StatusOK)
 }
-func mapCategories2Qualification ([]client.CategoryOffers) (*ProductOfferingQualificationResponse, error)
-{
+func parsePay(pay string) (string, float32, error) {
+	return "Day", 10, nil
 
-	containers :
-			
-	for _, cat := 
-	var p:= ProductOfferingQualificationResponse{
-		ProductOfferingQualificationItemContainer: {
-
+}
+func mapLabels(labels []client.CategoryOffersLabels) []OfferLabels {
+	result := make([]OfferLabels, len(labels))
+	for i, l := range labels {
+		result[i] = OfferLabels{
+			Name:        l.Labelname,
+			Description: l.Labelcolor,
 		}
 	}
+	return result
 }
-func getCategories () ([]client.CategoryOffers, error) {
-	fs, err := os.Open("../examples/json/offerslist.json")
+func mapProductOfferingPrice(subs []client.Subscription) []ProductOfferingPrice {
+	result := make([]ProductOfferingPrice, len(subs))
+
+	for i, s := range subs {
+		RecurringChargePeriodType, price, err := parsePay(s.Pay)
+		if err != nil {
+			panic(err)
+		}
+		result[i] = ProductOfferingPrice{
+			Description:               s.Description,
+			IsBundle:                  false,
+			LifecycleStatus:           "Active",
+			Name:                      s.Heading,
+			PriceType:                 "Recurring Charge",
+			RecurringChargePeriodType: RecurringChargePeriodType,
+			PricingLogicAlgorithm:     []PricingLogicAlgorithm{PricingLogicAlgorithm{Name: s.Pay, Description: s.Pay}},
+			Price:                     &Money{Unit: "RUB", Value: price},
+		}
+	}
+	return result
+}
+func mapCategories2Qualification(catOffers []client.CategoryOffers) (*ProductOfferingQualificationResponse, error) {
+
+	var containers []ProductOfferingQualificationResponseProductOfferingQualificationItemContainer = make([]ProductOfferingQualificationResponseProductOfferingQualificationItemContainer, 0)
+
+	for _, cat := range catOffers {
+		for _, offer := range cat.Offers {
+			p := ProductOfferingQualificationResponseProductOfferingQualificationItemContainer{
+				QualificationItemResult: "Qualified",
+				ProductOfferingQualificationItem: &ProductOfferingQualificationItem{
+					BaseType: "object",
+
+					Type_: "ProductOfferingQualificationItem",
+
+					Action: "Qualify",
+					Id:     strconv.FormatInt(offer.Id, 10),
+					Category: &CategoryRef{
+						Name: cat.Categoryname,
+					},
+
+					ProductOffering: &ProductOffering{
+						Attachment: []Attachment{
+							Attachment{
+								Name: "miniature",
+								Url:  offer.Miniature,
+							},
+							Attachment{
+								Name: "header",
+								Url:  offer.Header,
+							},
+						},
+						Category: []CategoryRef{
+							CategoryRef{
+								Name: cat.Categoryname,
+							},
+						},
+						Channel: []ChannelRef{
+							ChannelRef{
+								Name: "MLK",
+							},
+						},
+						Description: offer.Shortdescription,
+						IsBundle:    false,
+
+						IsSellable: true,
+
+						LifecycleStatus: "Active",
+
+						Name: offer.Name,
+
+						OfferLabels: mapLabels(offer.Labels),
+
+						ProductOfferingPrice: mapProductOfferingPrice(offer.Subscriptions),
+
+						SpecCharValueUse: []ConfigurableSpecificationCharacteristicValueUse{
+							ConfigurableSpecificationCharacteristicValueUse{
+								SpecificationType: "ProductSpecification",
+								Description:       "Приоритет",
+								MaxCardinality:    1,
+								MinCardinality:    1,
+								Name:              "priority",
+								SpecCharacteristicValue: []SpecificationCharacteristicValue{
+									SpecificationCharacteristicValue{
+										IsDefault:     true,
+										UnitOfMeasure: "NA",
+										Value:         strconv.FormatInt(int64(offer.Priority), 10),
+										ValueType:     "Integer",
+									},
+								},
+							},
+						},
+
+						// A string providing a complementary information on the value of the lifecycle status attribute.
+						StatusReason: "Qualification",
+
+						// ProductOffering version
+						Version: "1.0",
+					},
+				},
+			}
+			containers = append(containers, p)
+		}
+
+	}
+	p := ProductOfferingQualificationResponse{
+		ProductOfferingQualificationItemContainer: containers,
+	}
+	return &p, nil
+}
+func getCategories() ([]client.CategoryOffers, error) {
+	fs, err := os.Open("./examples/json/offerslist.json")
 	if err != nil {
 		panic(err)
 	}
 	var p []client.CategoryOffers
-	err := json.NewDecoder(fs).Decode(&p)
+	err = json.NewDecoder(fs).Decode(&p)
 	if err != nil {
 		return nil, err
 	}
-	return &p, nil
+	return p, nil
 }

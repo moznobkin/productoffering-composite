@@ -50,42 +50,42 @@ var routes = Routes{
 	Route{
 		"Index",
 		"GET",
-		"/moznobkin/product-aggregation-composite/0.0.1/",
+		"/",
 		Index,
 	},
 
 	Route{
 		"GetInstalledBase",
 		strings.ToUpper("Get"),
-		"/moznobkin/product-aggregation-composite/0.0.1/eapi/catalog/productoffering-composite/v1/getInstalledBase",
+		"/eapi/catalog/productoffering-composite/v1/getInstalledBase",
 		GetInstalledBase,
 	},
 
 	Route{
 		"GetQualifiedCategories",
 		strings.ToUpper("Post"),
-		"/moznobkin/product-aggregation-composite/0.0.1/eapi/catalog/productoffering-composite/v1/getQualifiedCategories",
+		"/eapi/catalog/productoffering-composite/v1/getQualifiedCategories",
 		GetQualifiedCategories,
 	},
 
 	Route{
 		"GetQualifiedProductOfferings",
 		strings.ToUpper("Post"),
-		"/moznobkin/product-aggregation-composite/0.0.1/eapi/catalog/productoffering-composite/v1/getQualifiedProductOfferings",
+		"/eapi/catalog/productoffering-composite/v1/getQualifiedProductOfferings",
 		GetQualifiedProductOfferings,
 	},
 
 	Route{
 		"GetEligibleCategories",
 		strings.ToUpper("Post"),
-		"/moznobkin/product-aggregation-composite/0.0.1/api/product-composite/v1/qualification/getEligibleCategories",
+		"/api/product-composite/v1/qualification/getEligibleCategories",
 		GetEligibleCategories,
 	},
 
 	Route{
 		"QualifyProducts",
 		strings.ToUpper("Post"),
-		"/moznobkin/product-aggregation-composite/0.0.1/api/product-composite/v1/qualification/qualifyProducts",
+		"/api/product-composite/v1/qualification/qualifyProducts",
 		QualifyProducts,
 	},
 }
