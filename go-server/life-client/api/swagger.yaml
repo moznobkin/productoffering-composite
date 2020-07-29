@@ -1,0 +1,494 @@
+openapi: 3.0.0
+info:
+  title: Product aggregation composite interface
+  version: 0.0.1
+servers:
+- url: https://virtserver.swaggerhub.com/MyTeam889/Life/0.0.1
+  description: SwaggerHub API Auto Mocking
+paths:
+  /API/v1/offerslist:
+    get:
+      tags:
+      - Service API
+      summary: returns all published offers
+      operationId: getOffers
+      parameters:
+      - name: msisdn
+        in: query
+        description: msisdn
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: category
+        in: query
+        description: Category name. If not specified - all
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - Посмотреть
+          - Послушать
+          - Почитать
+          - Поиграть
+          - Полезное
+      responses:
+        "200":
+          description: Successfully returns offers ist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffersListResponse'
+        "400":
+          description: Invalid parameters supplied
+        "403":
+          description: Forbidden Error
+        "404":
+          description: Product offering qualification not found
+        "422":
+          description: Unprocessable product offering qualification cart
+        "500":
+          description: Internal Server Error
+      deprecated: false
+  /API/v1/subscriptionslist:
+    get:
+      tags:
+      - Service API
+      summary: Retrieves subscriptions
+      operationId: getSubscriptions
+      parameters:
+      - name: msisdn
+        in: query
+        description: msisdn
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        "400":
+          description: Invalid parameters supplied
+        "403":
+          description: Forbidden Error
+        "404":
+          description: Product offering qualification not found
+        "422":
+          description: Unprocessable product offering qualification cart
+        "500":
+          description: Internal Server Error
+  /API/v1/subscriptions/{serviceid}:
+    post:
+      tags:
+      - Service API
+      summary: Create subscription
+      operationId: postSubscription
+      parameters:
+      - name: serviceid
+        in: path
+        description: VAS-P subscription identifier
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInfo'
+      responses:
+        "200":
+          description: Successfully returns Eligible CategoriesResult
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        "400":
+          description: Invalid parameters supplied
+        "403":
+          description: Forbidden Error
+        "404":
+          description: Product offering qualification not found
+        "422":
+          description: Unprocessable product offering qualification cart
+        "500":
+          description: Internal Server Error
+      deprecated: false
+    delete:
+      tags:
+      - Service API
+      summary: Delete subscription
+      operationId: deleteSubscription
+      parameters:
+      - name: serviceid
+        in: path
+        description: VAS-P subscription identifier
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInfo'
+      responses:
+        "200":
+          description: Successfully returns Eligible CategoriesResult
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        "400":
+          description: Invalid parameters supplied
+        "403":
+          description: Forbidden Error
+        "404":
+          description: Product offering qualification not found
+        "422":
+          description: Unprocessable product offering qualification cart
+        "500":
+          description: Internal Server Error
+      deprecated: false
+components:
+  schemas:
+    CategoryOffers:
+      type: object
+      properties:
+        categoryname:
+          type: string
+          description: Category Name
+        categorylogo:
+          type: string
+          description: reference to the logo image
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryOffers_offers'
+      example:
+        offers:
+        - offertype: VAS-P
+          shortdescription: shortdescription
+          buttontext: buttontext
+          subscriptions:
+          - cost: cost
+            heading: heading
+            description: description
+            pay: pay
+            serviceID: serviceID
+          - cost: cost
+            heading: heading
+            description: description
+            pay: pay
+            serviceID: serviceID
+          name: name
+          miniature: miniature
+          serviceurl: serviceurl
+          detaileddescription: detaileddescription
+          header: header
+          id: 0
+          priority: 6
+          labels:
+          - labelcolor: 34AAF2
+            labelname: Новое
+          - labelcolor: 34AAF2
+            labelname: Новое
+        - offertype: VAS-P
+          shortdescription: shortdescription
+          buttontext: buttontext
+          subscriptions:
+          - cost: cost
+            heading: heading
+            description: description
+            pay: pay
+            serviceID: serviceID
+          - cost: cost
+            heading: heading
+            description: description
+            pay: pay
+            serviceID: serviceID
+          name: name
+          miniature: miniature
+          serviceurl: serviceurl
+          detaileddescription: detaileddescription
+          header: header
+          id: 0
+          priority: 6
+          labels:
+          - labelcolor: 34AAF2
+            labelname: Новое
+          - labelcolor: 34AAF2
+            labelname: Новое
+        categoryname: categoryname
+        categorylogo: categorylogo
+    OffersListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - OK
+        category:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryOffers'
+      example:
+        category:
+        - offers:
+          - offertype: VAS-P
+            shortdescription: shortdescription
+            buttontext: buttontext
+            subscriptions:
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            name: name
+            miniature: miniature
+            serviceurl: serviceurl
+            detaileddescription: detaileddescription
+            header: header
+            id: 0
+            priority: 6
+            labels:
+            - labelcolor: 34AAF2
+              labelname: Новое
+            - labelcolor: 34AAF2
+              labelname: Новое
+          - offertype: VAS-P
+            shortdescription: shortdescription
+            buttontext: buttontext
+            subscriptions:
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            name: name
+            miniature: miniature
+            serviceurl: serviceurl
+            detaileddescription: detaileddescription
+            header: header
+            id: 0
+            priority: 6
+            labels:
+            - labelcolor: 34AAF2
+              labelname: Новое
+            - labelcolor: 34AAF2
+              labelname: Новое
+          categoryname: categoryname
+          categorylogo: categorylogo
+        - offers:
+          - offertype: VAS-P
+            shortdescription: shortdescription
+            buttontext: buttontext
+            subscriptions:
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            name: name
+            miniature: miniature
+            serviceurl: serviceurl
+            detaileddescription: detaileddescription
+            header: header
+            id: 0
+            priority: 6
+            labels:
+            - labelcolor: 34AAF2
+              labelname: Новое
+            - labelcolor: 34AAF2
+              labelname: Новое
+          - offertype: VAS-P
+            shortdescription: shortdescription
+            buttontext: buttontext
+            subscriptions:
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            - cost: cost
+              heading: heading
+              description: description
+              pay: pay
+              serviceID: serviceID
+            name: name
+            miniature: miniature
+            serviceurl: serviceurl
+            detaileddescription: detaileddescription
+            header: header
+            id: 0
+            priority: 6
+            labels:
+            - labelcolor: 34AAF2
+              labelname: Новое
+            - labelcolor: 34AAF2
+              labelname: Новое
+          categoryname: categoryname
+          categorylogo: categorylogo
+        status: OK
+    OkResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - OK
+      example:
+        status: OK
+    Subscription:
+      type: object
+      properties:
+        heading:
+          type: string
+        description:
+          type: string
+          description: short description
+        serviceID:
+          type: string
+          description: VAS-P subscription identifier
+        cost:
+          type: string
+          description: cost of subscription
+        pay:
+          type: string
+          description: recurrent payment
+      example:
+        cost: cost
+        heading: heading
+        description: description
+        pay: pay
+        serviceID: serviceID
+    SubscriptionInfo:
+      type: object
+      properties:
+        msisdn:
+          type: string
+        channdetails:
+          type: string
+          example: ussd
+        transactid:
+          type: string
+          example: asd_542355235
+    CategoryOffers_labels:
+      type: object
+      properties:
+        labelname:
+          type: string
+          description: label name
+          enum:
+          - Новое
+          - Выборпользователей
+          - Хитсезона
+          - Популярное
+        labelcolor:
+          type: string
+          description: 'label color code in #RRGGBB format'
+          enum:
+          - 34AAF2
+          - "444189"
+          - EB5A40
+          - FFA717
+      example:
+        labelcolor: 34AAF2
+        labelname: Новое
+    CategoryOffers_offers:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: unique identifier
+          format: int64
+        name:
+          type: string
+          description: offer name
+        shortdescription:
+          type: string
+          description: short description
+        detaileddescription:
+          type: string
+          description: full description
+        miniature:
+          type: string
+          description: reference to the offer image in the list
+        header:
+          type: string
+          description: reference to the offer image in the full description
+        offertype:
+          type: string
+          enum:
+          - VAS-P
+          - url
+        serviceurl:
+          type: string
+          description: reference to service, required if offertype = url
+        buttontext:
+          type: string
+          description: the text of the button
+        priority:
+          type: integer
+          description: offer priority, bigger number means higher priority
+        labels:
+          type: array
+          description: array of labels data which will be used for offer
+          items:
+            $ref: '#/components/schemas/CategoryOffers_labels'
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+      example:
+        offertype: VAS-P
+        shortdescription: shortdescription
+        buttontext: buttontext
+        subscriptions:
+        - cost: cost
+          heading: heading
+          description: description
+          pay: pay
+          serviceID: serviceID
+        - cost: cost
+          heading: heading
+          description: description
+          pay: pay
+          serviceID: serviceID
+        name: name
+        miniature: miniature
+        serviceurl: serviceurl
+        detaileddescription: detaileddescription
+        header: header
+        id: 0
+        priority: 6
+        labels:
+        - labelcolor: 34AAF2
+          labelname: Новое
+        - labelcolor: 34AAF2
+          labelname: Новое
