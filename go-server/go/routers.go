@@ -43,35 +43,37 @@ func NewRouter() *mux.Router {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+	fmt.Fprintf(w, "PAC service")
 }
+
+const basePath = "/eapi/catalog/productoffering-composite/v1"
 
 var routes = Routes{
 	Route{
 		"Index",
 		"GET",
-		"/",
+		basePath,
 		Index,
 	},
 
 	Route{
 		"GetInstalledBase",
 		strings.ToUpper("Get"),
-		"/eapi/catalog/productoffering-composite/v1/getInstalledBase",
+		basePath + "/getInstalledBase",
 		GetInstalledBase,
 	},
 
 	Route{
 		"GetQualifiedCategories",
 		strings.ToUpper("Post"),
-		"/eapi/catalog/productoffering-composite/v1/getQualifiedCategories",
+		basePath + "/getQualifiedCategories",
 		GetQualifiedCategories,
 	},
 
 	Route{
 		"GetQualifiedProductOfferings",
 		strings.ToUpper("Post"),
-		"/eapi/catalog/productoffering-composite/v1/getQualifiedProductOfferings",
+		basePath + "/getQualifiedProductOfferings",
 		GetQualifiedProductOfferings,
 	},
 
