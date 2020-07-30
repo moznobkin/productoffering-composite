@@ -14,6 +14,7 @@ COPY --from=builder /go/bin/productoffering-composite.exe /usr/bin/productofferi
 COPY --from=builder /go/src/github.com/moznobkin/productoffering-composite/examples/json/  /usr/bin/examples/json/
 
 WORKDIR /usr/bin
+ARG Q_PASS
 
 EXPOSE 8080 8080
 ENTRYPOINT ["/usr/bin/productoffering-composite.exe"]
