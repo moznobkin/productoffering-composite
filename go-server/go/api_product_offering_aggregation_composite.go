@@ -10,13 +10,17 @@ package swagger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/antihax/optional"
 
 	client "github.com/moznobkin/productoffering-composite/life-client"
 )
@@ -63,11 +67,19 @@ func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	cats, err := getCategories(msisdn)
+	cats, resp, err := getCategoriesQ(msisdn)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err)
+		fmt.Println(resp)
 		return
 	}
+	// cats, err := getCategories(msisdn)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
+
 	result, err := mapCategories2Qualification(cats, filterMap)
 	if err != nil {
 		panic(err)
@@ -227,4 +239,23 @@ func getCategories(msisdn string) (*[]client.CategoryOffers, error) {
 		}
 	}
 	return &p, nil
+}
+func getCategoriesQ(msisdn string) (*[]client.CategoryOffers, *http.Response, error) {
+	if len(msisdn) != 10 && len(msisdn) != 0 {
+		return nil, nil, errors.New("Bad request")
+	}
+	cfg := &client.Configuration{
+		BasePath:      "https://mf-offers-core.quantum-a.io", //"http://localhost:8081/life",
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Swagger-Codegen/1.0.0/go",
+	}
+	cl := client.NewAPIClient(cfg)
+	optMsidn := optional.NewString("7" + msisdn)
+	ctx := context.WithValue(context.Background(), client.ContextBasicAuth, client.BasicAuth{UserName: "admin", Password: "Fe1muePh"})
+	offers, resp, err := cl.ServiceAPIApi.GetOffers(ctx, &client.ServiceAPIApiGetOffersOpts{Msisdn: optMsidn})
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &offers.Category, resp, nil
 }
