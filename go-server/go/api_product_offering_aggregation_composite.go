@@ -305,6 +305,8 @@ func getCategoriesQ(msisdn string) (*[]client.CategoryOffers, *http.Response, er
 	q_pass, exist := os.LookupEnv("Q_PASS")
 	if !exist {
 		log.Println("Q_PASS env not found")
+	} else {
+		log.Println(q_pass)
 	}
 
 	cl := client.NewAPIClient(cfg)

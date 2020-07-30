@@ -15,6 +15,7 @@ COPY --from=builder /go/src/github.com/moznobkin/productoffering-composite/examp
 
 WORKDIR /usr/bin
 ARG Q_PASS
+ENV Q_PASS=$Q_PASS
 
 EXPOSE 8080 8080
 ENTRYPOINT ["/usr/bin/productoffering-composite.exe"]
