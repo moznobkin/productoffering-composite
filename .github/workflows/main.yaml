@@ -9,8 +9,11 @@ jobs:
         fetch-depth: 0
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
+      env:
+        Q_PASS: ${{ secrets.Q_PASS }}
       with:
         name: mikhailoznobkin/productoffering-composite
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         workdir: go-server
+        buildargs: Q_PASS

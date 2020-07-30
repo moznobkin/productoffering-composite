@@ -37,7 +37,7 @@ func GetQualifiedCategories(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
+func getQualifiedProductOfferings(w http.ResponseWriter, r *http.Request, getCats func(msisdn string) (*[]client.CategoryOffers, *http.Response, error)) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var filterMap map[string]CategoryRef
 
@@ -67,18 +67,13 @@ func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	cats, resp, err := getCategoriesQ(msisdn)
+	cats, resp, err := getCats(msisdn)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
 		fmt.Println(resp)
 		return
 	}
-	// cats, err := getCategories(msisdn)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return
-	// }
 
 	result, err := mapCategories2Qualification(cats, filterMap)
 	if err != nil {
@@ -86,6 +81,15 @@ func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(result)
 	w.WriteHeader(http.StatusOK)
+
+}
+
+func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
+	getQualifiedProductOfferings(w, r, getCategories)
+}
+
+func GetQualifiedProductOfferingsV2(w http.ResponseWriter, r *http.Request) {
+	getQualifiedProductOfferings(w, r, getCategoriesQ)
 }
 
 func parsePay(pay string) (string, float32, error) {
@@ -217,9 +221,9 @@ func mapCategories2Qualification(catOffers *[]client.CategoryOffers, filter map[
 	return &p, nil
 }
 
-func getCategories(msisdn string) (*[]client.CategoryOffers, error) {
+func getCategories(msisdn string) (*[]client.CategoryOffers, *http.Response, error) {
 	if len(msisdn) != 10 && len(msisdn) != 0 {
-		return nil, errors.New("Bad request")
+		return nil, nil, errors.New("Bad request")
 	}
 	fs, err := os.Open("./examples/json/offerslist.json")
 	if err != nil {
@@ -229,7 +233,7 @@ func getCategories(msisdn string) (*[]client.CategoryOffers, error) {
 	err = json.NewDecoder(fs).Decode(&p)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(msisdn) == 0 {
 		for _, cat := range p {
@@ -238,20 +242,28 @@ func getCategories(msisdn string) (*[]client.CategoryOffers, error) {
 			}
 		}
 	}
-	return &p, nil
+	return &p, nil, nil
 }
 func getCategoriesQ(msisdn string) (*[]client.CategoryOffers, *http.Response, error) {
 	if len(msisdn) != 10 && len(msisdn) != 0 {
 		return nil, nil, errors.New("Bad request")
 	}
 	cfg := &client.Configuration{
-		BasePath:       //"http://localhost:8081/life",
+		BasePath:      "https://mf-offers-core.quantum-a.io",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Swagger-Codegen/1.0.0/go",
 	}
+	q_pass, exist := os.LookupEnv("Q_PASS")
+	if !exist {
+		log.Println("Q_PASS env not found")
+	}
+
 	cl := client.NewAPIClient(cfg)
-	optMsidn := optional.NewString("7" + msisdn)
-	ctx := context.WithValue(context.Background(), client.ContextBasicAuth, client.BasicAuth{UserName: "admin", Password: ""})
+	optMsidn := optional.EmptyString()
+	if len(msisdn) != 0 {
+		optMsidn = optional.NewString("7" + msisdn)
+	}
+	ctx := context.WithValue(context.Background(), client.ContextBasicAuth, client.BasicAuth{UserName: "admin", Password: q_pass})
 	offers, resp, err := cl.ServiceAPIApi.GetOffers(ctx, &client.ServiceAPIApiGetOffersOpts{Msisdn: optMsidn})
 	if err != nil {
 		return nil, resp, err

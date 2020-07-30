@@ -46,7 +46,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "PAC service")
 }
 
-const basePath = "/eapi/catalog/productoffering-composite/v1"
+const basePath = "/eapi/catalog/productoffering-composite"
 
 var routes = Routes{
 	Route{
@@ -59,24 +59,29 @@ var routes = Routes{
 	Route{
 		"GetInstalledBase",
 		strings.ToUpper("Get"),
-		basePath + "/getInstalledBase",
+		basePath + "/v1/getInstalledBase",
 		GetInstalledBase,
 	},
 
 	Route{
 		"GetQualifiedCategories",
 		strings.ToUpper("Post"),
-		basePath + "/getQualifiedCategories",
+		basePath + "/v1/getQualifiedCategories",
 		GetQualifiedCategories,
 	},
 
 	Route{
 		"GetQualifiedProductOfferings",
 		strings.ToUpper("Post"),
-		basePath + "/getQualifiedProductOfferings",
+		basePath + "/v1/getQualifiedProductOfferings",
 		GetQualifiedProductOfferings,
 	},
-
+	Route{
+		"GetQualifiedProductOfferingsV2",
+		strings.ToUpper("Post"),
+		basePath + "/v2/getQualifiedProductOfferings",
+		GetQualifiedProductOfferingsV2,
+	},
 	Route{
 		"GetEligibleCategories",
 		strings.ToUpper("Post"),
