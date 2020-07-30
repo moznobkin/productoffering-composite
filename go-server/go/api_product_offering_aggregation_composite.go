@@ -245,13 +245,13 @@ func getCategoriesQ(msisdn string) (*[]client.CategoryOffers, *http.Response, er
 		return nil, nil, errors.New("Bad request")
 	}
 	cfg := &client.Configuration{
-		BasePath:      "https://mf-offers-core.quantum-a.io", //"http://localhost:8081/life",
+		BasePath:       //"http://localhost:8081/life",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Swagger-Codegen/1.0.0/go",
 	}
 	cl := client.NewAPIClient(cfg)
 	optMsidn := optional.NewString("7" + msisdn)
-	ctx := context.WithValue(context.Background(), client.ContextBasicAuth, client.BasicAuth{UserName: "admin", Password: "Fe1muePh"})
+	ctx := context.WithValue(context.Background(), client.ContextBasicAuth, client.BasicAuth{UserName: "admin", Password: ""})
 	offers, resp, err := cl.ServiceAPIApi.GetOffers(ctx, &client.ServiceAPIApiGetOffersOpts{Msisdn: optMsidn})
 	if err != nil {
 		return nil, resp, err
