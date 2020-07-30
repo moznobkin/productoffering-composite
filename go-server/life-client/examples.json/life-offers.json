@@ -1,5 +1,4 @@
-{
-    "category": [
+[
         {
             "categoryname": "Посмотреть",
             "categorylogo": "https://life.megafon.ru/personal-offers/uploads/categories/ecfd6f61-056c-48a6-9b7a-7933289dcd84.png",
@@ -524,6 +523,4 @@
                 }
             ]
         }
-    ],
-    "status": "OK"
-}
+    ]

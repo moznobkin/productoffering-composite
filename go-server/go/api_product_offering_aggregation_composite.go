@@ -9,13 +9,19 @@
 package swagger
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 
 	client "github.com/moznobkin/productoffering-composite/life-client"
 )
+
+const regexp = `"((\d+).+\sбесплатно,\s)?(.*\s)(\d+)\s(рубля|рублей|рубль)\s(в\sдень|месяц|год|неделю)"`
 
 func GetInstalledBase(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -29,21 +35,52 @@ func GetQualifiedCategories(w http.ResponseWriter, r *http.Request) {
 
 func GetQualifiedProductOfferings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	cats, err := getCategories()
+	var filterMap map[string]CategoryRef
+
+	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
-	result, err := mapCategories2Qualification(cats)
+	msisdn := ""
+	keys, ok := r.URL.Query()["msisdn"]
+	if ok && len(keys) > 0 {
+		msisdn = keys[0]
+	}
+	if len(data) > 1 {
+		reader := bytes.NewReader(data)
+
+		var filter []CategoryRef
+		err := json.NewDecoder(reader).Decode(&filter)
+		if err != nil {
+			log.Println("Failed to load filter categories")
+		} else {
+			if len(filter) > 0 {
+				filterMap = make(map[string]CategoryRef, len(filter))
+				for _, cat := range filter {
+					filterMap[cat.Name] = cat
+				}
+			}
+		}
+
+	}
+	cats, err := getCategories(msisdn)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	result, err := mapCategories2Qualification(cats, filterMap)
 	if err != nil {
 		panic(err)
 	}
 	json.NewEncoder(w).Encode(result)
 	w.WriteHeader(http.StatusOK)
 }
+
 func parsePay(pay string) (string, float32, error) {
-	return "Day", 10, nil
+	return "Day", 0, nil
 
 }
+
 func mapLabels(labels []client.CategoryOffersLabels) []OfferLabels {
 	result := make([]OfferLabels, len(labels))
 	for i, l := range labels {
@@ -54,6 +91,7 @@ func mapLabels(labels []client.CategoryOffersLabels) []OfferLabels {
 	}
 	return result
 }
+
 func mapProductOfferingPrice(subs []client.Subscription) []ProductOfferingPrice {
 	result := make([]ProductOfferingPrice, len(subs))
 
@@ -75,103 +113,118 @@ func mapProductOfferingPrice(subs []client.Subscription) []ProductOfferingPrice 
 	}
 	return result
 }
-func mapCategories2Qualification(catOffers []client.CategoryOffers) (*ProductOfferingQualificationResponse, error) {
+
+func mapCategories2Qualification(catOffers *[]client.CategoryOffers, filter map[string]CategoryRef) (*ProductOfferingQualificationResponse, error) {
 
 	var containers []ProductOfferingQualificationResponseProductOfferingQualificationItemContainer = make([]ProductOfferingQualificationResponseProductOfferingQualificationItemContainer, 0)
 
-	for _, cat := range catOffers {
-		for _, offer := range cat.Offers {
-			p := ProductOfferingQualificationResponseProductOfferingQualificationItemContainer{
-				QualificationItemResult: "Qualified",
-				ProductOfferingQualificationItem: &ProductOfferingQualificationItem{
-					BaseType: "object",
+	for _, cat := range *catOffers {
+		var ok bool
+		if filter != nil {
+			_, ok = filter[cat.Categoryname]
 
-					Type_: "ProductOfferingQualificationItem",
+		}
+		if ok || filter == nil {
+			for _, offer := range cat.Offers {
+				p := ProductOfferingQualificationResponseProductOfferingQualificationItemContainer{
+					QualificationItemResult: "Qualified",
+					ProductOfferingQualificationItem: &ProductOfferingQualificationItem{
+						BaseType: "object",
 
-					Action: "Qualify",
-					Id:     strconv.FormatInt(offer.Id, 10),
-					Category: &CategoryRef{
-						Name: cat.Categoryname,
-					},
+						Type_: "ProductOfferingQualificationItem",
 
-					ProductOffering: &ProductOffering{
-						Attachment: []Attachment{
-							Attachment{
-								Name: "miniature",
-								Url:  offer.Miniature,
-							},
-							Attachment{
-								Name: "header",
-								Url:  offer.Header,
-							},
+						Action: "Qualify",
+						Id:     strconv.FormatInt(offer.Id, 10),
+						Category: &CategoryRef{
+							Name: cat.Categoryname,
 						},
-						Category: []CategoryRef{
-							CategoryRef{
-								Name: cat.Categoryname,
+
+						ProductOffering: &ProductOffering{
+							Attachment: []Attachment{
+								Attachment{
+									Name: "miniature",
+									Url:  offer.Miniature,
+								},
+								Attachment{
+									Name: "header",
+									Url:  offer.Header,
+								},
 							},
-						},
-						Channel: []ChannelRef{
-							ChannelRef{
-								Name: "MLK",
+							Category: []CategoryRef{
+								CategoryRef{
+									Name: cat.Categoryname,
+								},
 							},
-						},
-						Description: offer.Shortdescription,
-						IsBundle:    false,
+							Channel: []ChannelRef{
+								ChannelRef{
+									Name: "MLK",
+								},
+							},
+							Description: offer.Shortdescription,
+							IsBundle:    false,
 
-						IsSellable: true,
+							IsSellable: true,
 
-						LifecycleStatus: "Active",
+							LifecycleStatus: "Active",
 
-						Name: offer.Name,
+							Name: offer.Name,
 
-						OfferLabels: mapLabels(offer.Labels),
+							OfferLabels: mapLabels(offer.Labels),
 
-						ProductOfferingPrice: mapProductOfferingPrice(offer.Subscriptions),
+							ProductOfferingPrice: mapProductOfferingPrice(offer.Subscriptions),
 
-						SpecCharValueUse: []ConfigurableSpecificationCharacteristicValueUse{
-							ConfigurableSpecificationCharacteristicValueUse{
-								SpecificationType: "ProductSpecification",
-								Description:       "Приоритет",
-								MaxCardinality:    1,
-								MinCardinality:    1,
-								Name:              "priority",
-								SpecCharacteristicValue: []SpecificationCharacteristicValue{
-									SpecificationCharacteristicValue{
-										IsDefault:     true,
-										UnitOfMeasure: "NA",
-										Value:         strconv.FormatInt(int64(offer.Priority), 10),
-										ValueType:     "Integer",
+							SpecCharValueUse: []ConfigurableSpecificationCharacteristicValueUse{
+								ConfigurableSpecificationCharacteristicValueUse{
+									SpecificationType: "ProductSpecification",
+									Description:       "Приоритет",
+									MaxCardinality:    1,
+									MinCardinality:    1,
+									Name:              "priority",
+									SpecCharacteristicValue: []SpecificationCharacteristicValue{
+										SpecificationCharacteristicValue{
+											IsDefault:     true,
+											UnitOfMeasure: "NA",
+											Value:         strconv.FormatInt(int64(offer.Priority), 10),
+											ValueType:     "Integer",
+										},
 									},
 								},
 							},
+							StatusReason: "Qualification",
+							Version:      "1.0",
 						},
-
-						// A string providing a complementary information on the value of the lifecycle status attribute.
-						StatusReason: "Qualification",
-
-						// ProductOffering version
-						Version: "1.0",
 					},
-				},
+				}
+				containers = append(containers, p)
 			}
-			containers = append(containers, p)
 		}
-
 	}
 	p := ProductOfferingQualificationResponse{
 		ProductOfferingQualificationItemContainer: containers,
 	}
 	return &p, nil
 }
-func getCategories() ([]client.CategoryOffers, error) {
+
+func getCategories(msisdn string) (*[]client.CategoryOffers, error) {
+	if len(msisdn) != 10 && len(msisdn) != 0 {
+		return nil, errors.New("Bad request")
+	}
 	fs, err := os.Open("./examples/json/offerslist.json")
 	if err != nil {
 		panic(err)
 	}
 	var p []client.CategoryOffers
 	err = json.NewDecoder(fs).Decode(&p)
+
 	if err != nil {
 		return nil, err
 	}
-	return p, nil
+	if len(msisdn) == 0 {
+		for _, cat := range p {
+			for i, _ := range cat.Offers {
+				cat.Offers[i].Subscriptions = nil
+			}
+		}
+	}
+	return &p, nil
 }

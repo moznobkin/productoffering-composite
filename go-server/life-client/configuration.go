@@ -59,7 +59,7 @@ type Configuration struct {
 
 func NewConfiguration() *Configuration {
 	cfg := &Configuration{
-		BasePath:      "https://virtserver.swaggerhub.com/MyTeam889/Life/0.0.1",
+		BasePath:      "https://mf-offers-core.quantum-a.io",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Swagger-Codegen/1.0.0/go",
 	}
