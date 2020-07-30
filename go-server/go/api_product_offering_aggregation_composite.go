@@ -165,6 +165,10 @@ func mapCategories2Qualification(catOffers *[]client.CategoryOffers, filter map[
 									Name: "header",
 									Url:  offer.Header,
 								},
+								Attachment{
+									Name: "categorylogo",
+									Url:  cat.Categorylogo,
+								},
 							},
 							Category: []CategoryRef{
 								CategoryRef{
@@ -202,6 +206,51 @@ func mapCategories2Qualification(catOffers *[]client.CategoryOffers, filter map[
 											UnitOfMeasure: "NA",
 											Value:         strconv.FormatInt(int64(offer.Priority), 10),
 											ValueType:     "Integer",
+										},
+									},
+								},
+								ConfigurableSpecificationCharacteristicValueUse{
+									SpecificationType: "ProductSpecification",
+									Description:       "Текст кнопки",
+									MaxCardinality:    1,
+									MinCardinality:    1,
+									Name:              "buttontext",
+									SpecCharacteristicValue: []SpecificationCharacteristicValue{
+										SpecificationCharacteristicValue{
+											IsDefault:     true,
+											UnitOfMeasure: "NA",
+											Value:         offer.Buttontext,
+											ValueType:     "String",
+										},
+									},
+								},
+								ConfigurableSpecificationCharacteristicValueUse{
+									SpecificationType: "ProductSpecification",
+									Description:       "Тип оффера",
+									MaxCardinality:    1,
+									MinCardinality:    1,
+									Name:              "offertype",
+									SpecCharacteristicValue: []SpecificationCharacteristicValue{
+										SpecificationCharacteristicValue{
+											IsDefault:     true,
+											UnitOfMeasure: "NA",
+											Value:         offer.Offertype,
+											ValueType:     "String",
+										},
+									},
+								},
+								ConfigurableSpecificationCharacteristicValueUse{
+									SpecificationType: "ProductSpecification",
+									Description:       "Ссылка на сервис",
+									MaxCardinality:    1,
+									MinCardinality:    1,
+									Name:              "serviceurl",
+									SpecCharacteristicValue: []SpecificationCharacteristicValue{
+										SpecificationCharacteristicValue{
+											IsDefault:     true,
+											UnitOfMeasure: "NA",
+											Value:         offer.Serviceurl,
+											ValueType:     "String",
 										},
 									},
 								},
